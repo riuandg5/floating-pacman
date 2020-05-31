@@ -8,6 +8,10 @@
         let canvas = document.getElementById('game');
         canvas.width = document.body.clientWidth;
         canvas.height = document.body.clientHeight;
+        if (!canvas.getContext) {
+          console.log('Canvas not supported!');
+          return;
+        }
         let ctx = canvas.getContext('2d', { alpha: false });
 
         class Coordinate {
@@ -39,14 +43,30 @@
         }
 
         class Pacman {
-          constructor(x, y, rad, mouth, face, vx, vy) {
+          constructor(
+            x,
+            y,
+            rad,
+            mouth,
+            speed,
+            face = 0,
+            ux = 0,
+            uy = 0,
+            deltaT = 0,
+            gx = 0,
+            gy = 0
+          ) {
             this.pos = new Coordinate(x, y);
             this.rad = rad;
             this.face = face;
             this.lowersemi = new Semicircle(rad, mouth, false);
             this.uppersemi = new Semicircle(rad, -mouth, true);
-            this.vx = vx;
-            this.vy = vy;
+            this.ux = ux;
+            this.uy = uy;
+            this.deltaT = deltaT;
+            this.gx = gx;
+            this.gy = gy;
+            this.speed = speed;
           }
           render() {
             ctx.save();
@@ -57,25 +77,43 @@
             ctx.restore();
           }
           update() {
-            this.pos.x += this.vx;
-            this.pos.y += this.vy;
-            this.face = Math.atan2(this.vy, this.vx);
+            // using equation of motion
+            // let delx =
+            //   this.ux * this.deltaT + 0.5 * this.gx * this.deltaT * this.deltaT;
+            // let dely =
+            //   this.uy * this.deltaT + 0.5 * this.gy * this.deltaT * this.deltaT;
+
+            // using rotation rate
+            let delx = this.gx;
+            let dely = this.gy;
+
+            this.pos.x += delx;
+            this.pos.y += dely;
+            this.face = Math.atan2(dely, delx);
+
             if (this.pos.x > canvas.width - this.rad) {
               this.pos.x = canvas.width - this.rad;
-              this.vx = -this.vx;
+              this.ux = 0;
             }
-            if (this.pos.x < 0 + this.rad) {
-              this.pos.x = 0 + this.rad;
-              this.vx = -this.vx;
+            if (this.pos.x < this.rad) {
+              this.pos.x = this.rad;
+              this.ux = 0;
             }
             if (this.pos.y > canvas.height - this.rad) {
               this.pos.y = canvas.height - this.rad;
-              this.vy = -this.vy;
+              this.uy = 0;
             }
-            if (this.pos.y < 0 + this.rad) {
-              this.pos.y = 0 + this.rad;
-              this.vy = -this.vy;
+            if (this.pos.y < this.rad) {
+              this.pos.y = this.rad;
+              this.uy = 0;
             }
+          }
+          prefill(deltaT, gx, gy) {
+            this.deltaT = deltaT;
+            // this.ux = this.ux + this.gx * this.deltaT;
+            // this.uy = this.uy + this.gy * this.deltaT;
+            this.gx = -gx * this.speed;
+            this.gy = gy * this.speed;
           }
         }
 
@@ -84,9 +122,7 @@
           (canvas.height + 1) / 2,
           25,
           (35 * Math.PI) / 180,
-          0,
-          3,
-          3
+          5
         );
 
         function update() {
@@ -98,13 +134,29 @@
           pacman.render();
         }
 
-        function main() {
-          update();
-          render();
-          window.requestAnimationFrame(main);
+        function prefill(deltaT, gx, gy) {
+          pacman.prefill(deltaT, gx, gy);
         }
 
-        window.requestAnimationFrame(main);
+        if (window.DeviceMotionEvent) {
+          render();
+          window.addEventListener(
+            'devicemotion',
+            (e) => {
+              update();
+              render();
+              prefill(
+                e.interval / 1000,
+                e.accelerationIncludingGravity.x,
+                e.accelerationIncludingGravity.y
+              );
+            },
+            true
+          );
+        } else {
+          console.log('Device not supported!');
+          return;
+        }
       }
     </script>
     <style type="text/css">
