@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Floating Pacman</title>
+    <script type="text/javascript">
+      function draw() {
+        let canvas = document.getElementById('game');
+        canvas.width = document.body.clientWidth;
+        canvas.height = document.body.clientHeight;
+        let ctx = canvas.getContext('2d', { alpha: false });
+      }
+    </script>
+    <style type="text/css">
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      #game {
+        display: block;
+      }
+    </style>
+  </head>
+  <body onload="draw();">
+    <canvas id="game"></canvas>
+  </body>
+</html>
