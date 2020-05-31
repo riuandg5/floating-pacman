@@ -125,13 +125,50 @@
           5
         );
 
+        function randomBtw(min, max) {
+          return Math.random() * (max - min + 1) + min;
+        }
+
+        class Food {
+          constructor() {
+            this.pos = new Coordinate(
+              randomBtw(pacman.rad, canvas.width - pacman.rad),
+              randomBtw(pacman.rad, canvas.height - pacman.rad)
+            );
+            this.rad = 10;
+          }
+          render() {
+            ctx.beginPath();
+            ctx.arc(this.pos.x, this.pos.y, this.rad, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgb(0, 255, 0)';
+            ctx.fill();
+          }
+          update() {
+            if (
+              pacman.pos.x < this.pos.x + this.rad * 1.5 &&
+              pacman.pos.x > this.pos.x - this.rad * 1.5 &&
+              pacman.pos.y < this.pos.y + this.rad * 1.5 &&
+              pacman.pos.y > this.pos.y - this.rad * 1.5
+            ) {
+              this.pos = new Coordinate(
+                randomBtw(pacman.rad, canvas.width - pacman.rad),
+                randomBtw(pacman.rad, canvas.height - pacman.rad)
+              );
+            }
+          }
+        }
+
+        let food = new Food();
+
         function update() {
           pacman.update();
+          food.update();
         }
 
         function render() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           pacman.render();
+          food.render();
         }
 
         function prefill(deltaT, gx, gy) {
