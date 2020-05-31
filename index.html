@@ -9,6 +9,102 @@
         canvas.width = document.body.clientWidth;
         canvas.height = document.body.clientHeight;
         let ctx = canvas.getContext('2d', { alpha: false });
+
+        class Coordinate {
+          constructor(x, y) {
+            this.x = x;
+            this.y = y;
+          }
+        }
+
+        class Semicircle {
+          constructor(rad, mouth, clockwise) {
+            this.rad = rad;
+            this.mouth = mouth;
+            this.clockwise = clockwise;
+          }
+          render() {
+            ctx.beginPath();
+            ctx.arc(
+              0,
+              0,
+              this.rad,
+              this.mouth,
+              this.mouth + Math.PI,
+              this.clockwise
+            );
+            ctx.fillStyle = 'rgb(255, 255, 0)';
+            ctx.fill();
+          }
+        }
+
+        class Pacman {
+          constructor(x, y, rad, mouth, face, vx, vy) {
+            this.pos = new Coordinate(x, y);
+            this.rad = rad;
+            this.face = face;
+            this.lowersemi = new Semicircle(rad, mouth, false);
+            this.uppersemi = new Semicircle(rad, -mouth, true);
+            this.vx = vx;
+            this.vy = vy;
+          }
+          render() {
+            ctx.save();
+            ctx.translate(this.pos.x, this.pos.y);
+            ctx.rotate(this.face);
+            this.lowersemi.render();
+            this.uppersemi.render();
+            ctx.restore();
+          }
+          update() {
+            this.pos.x += this.vx;
+            this.pos.y += this.vy;
+            this.face = Math.atan2(this.vy, this.vx);
+            if (this.pos.x > canvas.width - this.rad) {
+              this.pos.x = canvas.width - this.rad;
+              this.vx = -this.vx;
+            }
+            if (this.pos.x < 0 + this.rad) {
+              this.pos.x = 0 + this.rad;
+              this.vx = -this.vx;
+            }
+            if (this.pos.y > canvas.height - this.rad) {
+              this.pos.y = canvas.height - this.rad;
+              this.vy = -this.vy;
+            }
+            if (this.pos.y < 0 + this.rad) {
+              this.pos.y = 0 + this.rad;
+              this.vy = -this.vy;
+            }
+          }
+        }
+
+        let pacman = new Pacman(
+          (canvas.width + 1) / 2,
+          (canvas.height + 1) / 2,
+          25,
+          (35 * Math.PI) / 180,
+          0,
+          3,
+          3
+        );
+
+        function update() {
+          pacman.update();
+        }
+
+        function render() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          pacman.render();
+        }
+
+        function main() {
+          update();
+          render();
+          window.requestAnimationFrame(main);
+        }
+
+        window.requestAnimationFrame(main);
       }
     </script>
     <style type="text/css">
