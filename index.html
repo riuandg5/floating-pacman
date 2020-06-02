@@ -5,14 +5,44 @@
     <title>Floating Pacman</title>
     <script type="text/javascript">
       function draw() {
+        let playbtn = document.getElementById('play');
+        let stayawake = document.getElementById('stayawake');
+        let ui = document.getElementById('ui');
         let canvas = document.getElementById('game');
-        canvas.width = document.body.clientWidth;
-        canvas.height = document.body.clientHeight;
         if (!canvas.getContext) {
           console.log('Canvas not supported!');
           return;
         }
+        canvas.width = document.body.clientWidth;
+        canvas.height = document.body.clientHeight;
         let ctx = canvas.getContext('2d', { alpha: false });
+
+        function randomBtw(min, max) {
+          return Math.random() * (max - min + 1) + min;
+        }
+
+        class NoSleep {
+          constructor() {
+            this.noSleepVideo = document.createElement('video');
+            this.noSleepVideo.setAttribute('title', 'No Sleep');
+            this.noSleepVideo.setAttribute('playsinline', '');
+            let source = document.createElement('source');
+            source.src =
+              'data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQI0VSalmQCgq17FAAw9CQE2AQAZ3aGFtbXlXQUAGd2hhbW15RIlACECPQAAAAAAAFlSua0AxrkAu14EBY8WBAZyBACK1nEADdW5khkAFVl9WUDglhohAA1ZQOIOBAeBABrCBCLqBCB9DtnVAIueBAKNAHIEAAIAwAQCdASoIAAgAAUAmJaQAA3AA/vz0AAA=';
+            source.type = 'video/webm';
+            this.noSleepVideo.appendChild(source);
+            this.noSleepVideo.addEventListener('loadedmetadata', () => {
+              this.noSleepVideo.setAttribute('loop', '');
+            });
+          }
+          enable() {
+            this.noSleepVideo.play();
+          }
+
+          disable() {
+            this.noSleepVideo.pause();
+          }
+        }
 
         class Coordinate {
           constructor(x, y) {
@@ -21,11 +51,25 @@
           }
         }
 
+        class Circle {
+          constructor(rad, color) {
+            this.rad = rad;
+            this.color = color;
+          }
+          render() {
+            ctx.beginPath();
+            ctx.arc(0, 0, this.rad, 0, 2 * Math.PI);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          }
+        }
+
         class Semicircle {
-          constructor(rad, mouth, clockwise) {
+          constructor(rad, mouth, clockwise, color) {
             this.rad = rad;
             this.mouth = mouth;
             this.clockwise = clockwise;
+            this.color = color;
           }
           render() {
             ctx.beginPath();
@@ -37,7 +81,7 @@
               this.mouth + Math.PI,
               this.clockwise
             );
-            ctx.fillStyle = 'rgb(255, 255, 0)';
+            ctx.fillStyle = this.color;
             ctx.fill();
           }
         }
@@ -49,6 +93,7 @@
             rad,
             mouth,
             speed,
+            color,
             face = 0,
             ux = 0,
             uy = 0,
@@ -59,8 +104,8 @@
             this.pos = new Coordinate(x, y);
             this.rad = rad;
             this.face = face;
-            this.lowersemi = new Semicircle(rad, mouth, false);
-            this.uppersemi = new Semicircle(rad, -mouth, true);
+            this.lowersemi = new Semicircle(rad, mouth, false, color);
+            this.uppersemi = new Semicircle(rad, -mouth, true, color);
             this.ux = ux;
             this.uy = uy;
             this.deltaT = deltaT;
@@ -117,31 +162,20 @@
           }
         }
 
-        let pacman = new Pacman(
-          (canvas.width + 1) / 2,
-          (canvas.height + 1) / 2,
-          25,
-          (35 * Math.PI) / 180,
-          5
-        );
-
-        function randomBtw(min, max) {
-          return Math.random() * (max - min + 1) + min;
-        }
-
         class Food {
-          constructor() {
+          constructor(rad, color) {
             this.pos = new Coordinate(
               randomBtw(pacman.rad, canvas.width - pacman.rad),
               randomBtw(pacman.rad, canvas.height - pacman.rad)
             );
-            this.rad = 10;
+            this.rad = rad;
+            this.circle = new Circle(rad, color);
           }
           render() {
-            ctx.beginPath();
-            ctx.arc(this.pos.x, this.pos.y, this.rad, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgb(0, 255, 0)';
-            ctx.fill();
+            ctx.save();
+            ctx.translate(this.pos.x, this.pos.y);
+            this.circle.render();
+            ctx.restore();
           }
           update() {
             if (
@@ -158,7 +192,18 @@
           }
         }
 
-        let food = new Food();
+        let noSleep = new NoSleep();
+
+        let pacman = new Pacman(
+          (canvas.width + 1) / 2,
+          (canvas.height + 1) / 2,
+          25,
+          (35 * Math.PI) / 180,
+          5,
+          'rgb(255, 255, 0)'
+        );
+
+        let food = new Food(10, 'rgb(255, 255, 255)');
 
         function update() {
           pacman.update();
@@ -197,32 +242,6 @@
           }
         }
 
-        class NoSleep {
-          constructor() {
-            this.noSleepVideo = document.createElement('video');
-            this.noSleepVideo.setAttribute('title', 'No Sleep');
-            this.noSleepVideo.setAttribute('playsinline', '');
-            let source = document.createElement('source');
-            source.src =
-              'data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQI0VSalmQCgq17FAAw9CQE2AQAZ3aGFtbXlXQUAGd2hhbW15RIlACECPQAAAAAAAFlSua0AxrkAu14EBY8WBAZyBACK1nEADdW5khkAFVl9WUDglhohAA1ZQOIOBAeBABrCBCLqBCB9DtnVAIueBAKNAHIEAAIAwAQCdASoIAAgAAUAmJaQAA3AA/vz0AAA=';
-            source.type = 'video/webm';
-            this.noSleepVideo.appendChild(source);
-            this.noSleepVideo.addEventListener('loadedmetadata', () => {
-              this.noSleepVideo.setAttribute('loop', '');
-            });
-          }
-          enable() {
-            this.noSleepVideo.play();
-          }
-
-          disable() {
-            this.noSleepVideo.pause();
-          }
-        }
-
-        let playbtn = document.getElementById('play');
-        let stayawake = document.getElementById('stayawake');
-        let ui = document.getElementById('ui');
         stayawake.addEventListener('change', () => {
           if (stayawake.checked) {
             playbtn.disabled = false;
@@ -230,8 +249,8 @@
             playbtn.disabled = true;
           }
         });
+
         playbtn.addEventListener('click', () => {
-          let noSleep = new NoSleep();
           noSleep.enable();
           ui.style.zIndex = -1;
           main();
