@@ -196,6 +196,50 @@
           }
         }
 
+        class GhostBody {
+          constructor(size, color) {
+            this.half = size / 2;
+            this.color = color;
+          }
+          render() {
+            ctx.beginPath();
+            ctx.moveTo(-this.half, 0);
+            ctx.arcTo(-this.half, -this.half, 0, -this.half, this.half);
+            ctx.arcTo(this.half, -this.half, this.half, 0, this.half);
+            ctx.lineTo(this.half, this.half);
+            for (let i = 1; i <= 6; i++) {
+              ctx.lineTo(
+                this.half - (i * this.half) / 3,
+                i % 2 ? this.half - this.half / 5 : this.half
+              );
+            }
+            ctx.lineTo(-this.half, 0);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          }
+        }
+
+        class Ghost {
+          constructor(ghostsize, ghostcolor, irad, icolor) {
+            this.pos = new Coordinate(
+              randomBtw(pacman.rad, canvas.width - pacman.rad),
+              randomBtw(pacman.rad, canvas.height - pacman.rad)
+            );
+            this.ghostcolor = ghostcolor;
+            this.ghostbody = new GhostBody(ghostsize, ghostcolor);
+            this.lefteye = new Circle(irad, icolor, -ghostsize / 5, 0);
+            this.righteye = new Circle(irad, icolor, ghostsize / 5, 0);
+          }
+          render() {
+            ctx.save();
+            ctx.translate(this.pos.x, this.pos.y);
+            this.ghostbody.render();
+            this.lefteye.render();
+            this.righteye.render();
+            ctx.restore();
+          }
+        }
+
         let noSleep = new NoSleep();
 
         let pacman = new Pacman(
@@ -209,6 +253,13 @@
 
         let food = new Food(10, 'rgb(255, 255, 255)');
 
+        let staticghost = new Ghost(
+          48,
+          'rgb(100, 100, 100)',
+          6,
+          'rgb(0, 0, 0)'
+        );
+
         function update() {
           pacman.update();
           food.update();
@@ -218,6 +269,7 @@
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           pacman.render();
           food.render();
+          staticghost.render();
         }
 
         function prefill(deltaT, gx, gy) {
