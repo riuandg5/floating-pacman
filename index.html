@@ -52,30 +52,34 @@
         }
 
         class Circle {
-          constructor(rad, color) {
+          constructor(rad, color, x = 0, y = 0) {
             this.rad = rad;
             this.color = color;
+            this.x = x;
+            this.y = y;
           }
           render() {
             ctx.beginPath();
-            ctx.arc(0, 0, this.rad, 0, 2 * Math.PI);
+            ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
             ctx.fillStyle = this.color;
             ctx.fill();
           }
         }
 
         class Semicircle {
-          constructor(rad, mouth, clockwise, color) {
+          constructor(rad, mouth, clockwise, color, x = 0, y = 0) {
             this.rad = rad;
             this.mouth = mouth;
             this.clockwise = clockwise;
             this.color = color;
+            this.x = x;
+            this.y = y;
           }
           render() {
             ctx.beginPath();
             ctx.arc(
-              0,
-              0,
+              this.x,
+              this.y,
               this.rad,
               this.mouth,
               this.mouth + Math.PI,
